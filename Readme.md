@@ -14,6 +14,8 @@ R 							: recenter VR tracker
 
 ###### Editor
 
+Uses Unity 5.2.2p1.
+
 To run the project, make sure to start in the 'lobby' scene (you can use File->Scene Autoload to always open it when pressing the play button).
 
 The level itself is in the 'playground' scene.
