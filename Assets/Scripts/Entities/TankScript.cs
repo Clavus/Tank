@@ -179,9 +179,9 @@ public class TankScript : NetworkBehaviour, IDamagable
         //bulletBody.velocity = bulletSpawn.forward * fireVelocity; 
     }
 
-    public void TakeDamage(int amount, DamageType damage, GameObject inflictor)
+    public void TakeDamage(DamageData damage)
     {
-        RpcPunchVehicle();
+        RpcTookDamage();
     }
 
     #endregion
@@ -196,13 +196,15 @@ public class TankScript : NetworkBehaviour, IDamagable
     }
 
     [ClientRpc]
-    void RpcPunchVehicle()
+    void RpcTookDamage()
     {
+        // Punch vehicle scale
         iTween.Stop(vehicleBody.gameObject);
         vehicleBody.localScale = Vector3.one;
 
         // delay by a frame, can't seem to trigger tweens right after stopping them.
-        vp_Timer.In(0, delegate () { // todo: proper null check in case the vehicle is destroyed
+        // todo: proper null check in case the vehicle is destroyed
+        vp_Timer.In(0, delegate () {
             iTween.PunchScale(vehicleBody.gameObject, new Vector3(0.1f, 0.2f, 0.1f), 0.8f);
         });
 

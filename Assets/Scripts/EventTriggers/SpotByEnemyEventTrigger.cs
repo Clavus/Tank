@@ -8,7 +8,7 @@ public class SpotByEnemyEventTrigger : EventTrigger
 
     public override void Trigger(GameObject triggerree)
     {
-        enemy.OnSpotObject(triggerree);
+        enemy.SpotObject(triggerree);
     }
 
 }

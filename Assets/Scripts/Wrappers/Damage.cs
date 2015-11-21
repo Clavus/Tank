@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
-using System.Collections;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 public class Damage {
     /// <summary>
@@ -12,11 +13,16 @@ public class Damage {
     /// <param name="inflictor"></param>
     public static void ApplyTo(Collider coll, int amount, DamageType damageType, GameObject inflictor)
     {
-        IDamagable damagable = coll.GetComponent(typeof(IDamagable)) as IDamagable;
-        if (damagable == null && coll.attachedRigidbody != null)
-            damagable = coll.attachedRigidbody.GetComponent(typeof(IDamagable)) as IDamagable;
-        if (damagable != null)
-            damagable.TakeDamage(amount, damageType, inflictor);
+        IDamagable[] damagables = coll.GetComponents(typeof(IDamagable)).Cast<IDamagable>().ToArray();
+        DamageData dm = new DamageData(amount, damageType, inflictor);
+        Array.ForEach(damagables, damagable => damagable.TakeDamage(dm));
+
+        // Also apply damage to rigidbody of this collider, but only if they're different gameobjects (otherwise we already did)
+        if (coll.attachedRigidbody != null && coll.gameObject != coll.attachedRigidbody.gameObject)
+        {
+            IDamagable[] rigidBodyDamagables = coll.attachedRigidbody.GetComponents(typeof(IDamagable)).Cast<IDamagable>().ToArray();
+            Array.ForEach(rigidBodyDamagables, damagable => damagable.TakeDamage(dm));
+        }
     }
 
     /// <summary>
@@ -28,9 +34,9 @@ public class Damage {
     /// <param name="inflictor"></param>
     public static void ApplyTo(GameObject obj, int amount, DamageType damageType, GameObject inflictor)
     {
-        IDamagable damagable = obj.GetComponent(typeof(IDamagable)) as IDamagable;
-        if (damagable != null)
-            damagable.TakeDamage(amount, damageType, inflictor);
+        IDamagable[] damagables = obj.GetComponents(typeof(IDamagable)).Cast<IDamagable>().ToArray();
+        DamageData dm = new DamageData(amount, damageType, inflictor);
+        Array.ForEach(damagables, damagable => damagable.TakeDamage(dm));
     }
 
     /// <summary>
@@ -42,20 +48,32 @@ public class Damage {
     /// <param name="inflictor"></param>
     public static void ApplyExplosionDamage(Collider[] colliders, int amount, DamageType damageType = DamageType.Explosion, GameObject inflictor = null)
     {
-        List<IDamagable> seen = new List<IDamagable>();
-        IDamagable damagable;
+        List<GameObject> seen = new List<GameObject>();
+        DamageData dm = new DamageData(amount, damageType, inflictor);
+        IDamagable[] damagables;
+        IDamagable[] rigidBodyDamagables;
 
         foreach (Collider coll in colliders)
         {
-            damagable = coll.GetComponent(typeof(IDamagable)) as IDamagable;
-            if (damagable == null && coll.attachedRigidbody != null)
-                damagable = coll.attachedRigidbody.GetComponent(typeof(IDamagable)) as IDamagable;
-            if (damagable != null && !seen.Contains(damagable))
+            if (seen.Contains(coll.gameObject))
+                continue;
+
+            seen.Add(coll.gameObject); // avoid applying damage twice to the IDamagable components on the same game object
+
+            damagables = coll.GetComponents(typeof (IDamagable)).Cast<IDamagable>().ToArray();
+            Array.ForEach(damagables, damagable => damagable.TakeDamage(dm)); ;
+
+            // Also apply damage to rigidbody of this collider, but only if they're different gameobjects (otherwise we already did)
+            if (coll.attachedRigidbody != null && !seen.Contains(coll.attachedRigidbody.gameObject))
             {
-                damagable.TakeDamage(amount, damageType, inflictor);
-                seen.Add(damagable);   
+                seen.Add(coll.attachedRigidbody.gameObject);
+
+                rigidBodyDamagables = coll.attachedRigidbody.GetComponents(typeof(IDamagable)).Cast<IDamagable>().ToArray();
+                Array.ForEach(rigidBodyDamagables, damagable => damagable.TakeDamage(dm));
             }
         }
+
+        
     }
 
 }

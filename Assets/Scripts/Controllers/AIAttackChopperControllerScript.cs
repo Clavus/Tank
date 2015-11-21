@@ -75,7 +75,7 @@ public class AIAttackChopperControllerScript : BaseEnemyAIControllerBehaviour
         strafeDirection = (new Vector3(target.transform.position.x - transform.position.x, 0, target.transform.position.z - transform.position.z)).normalized;
     }
 
-    public override void OnSpotObject(GameObject spotted)
+    public override void SpotObject(GameObject spotted)
     {
         IPlayer player = spotted.GetComponent(typeof(IPlayer)) as IPlayer;
         if (player == null)

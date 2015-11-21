@@ -54,7 +54,7 @@ public class AITankControllerScript : BaseEnemyAIControllerBehaviour
 
     }
 
-    public override void OnSpotObject(GameObject spotted)
+    public override void SpotObject(GameObject spotted)
     {
 
     }

@@ -2,10 +2,16 @@
 using UnityEngine.Networking;
 using System.Collections;
 
-public class BaseEnemyAIControllerBehaviour : NetworkBehaviour, IEnemy {
+public class BaseEnemyAIControllerBehaviour : NetworkBehaviour, IEnemy, IDamagable {
 
-    public virtual void OnSpotObject(GameObject spotted)
+    public virtual void SpotObject(GameObject spotted)
     {
         
     }
+
+    public virtual void TakeDamage(DamageData damage)
+    {
+
+    }
+
 }

@@ -69,7 +69,7 @@ public class AttackChopperScript : NetworkBehaviour, IDamagable
         NetworkServer.Spawn(bullet);
     }
 
-    public void TakeDamage(int amount, DamageType damage, GameObject inflictor)
+    public void TakeDamage(DamageData damage)
     {
         RpcPunchVehicle();
     }

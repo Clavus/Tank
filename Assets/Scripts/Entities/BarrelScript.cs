@@ -29,13 +29,13 @@ public class BarrelScript : NetworkBehaviour, IDamagable
 
     #region SERVER
 
-    public void TakeDamage(int amount, DamageType damageType, GameObject inflictor = null)
+    public void TakeDamage(DamageData damage)
     {
-        if (inflictor == gameObject)
+        if (damage.inflictor == gameObject)
             return;
 
         float boomTime = Time.time;
-        if (damageType == DamageType.Explosion)
+        if (damage.type == DamageType.Explosion)
         {
             float delay = Random.Range(explosionDelayMin, explosionDelayMax);
             boomTime = Time.time + delay; // delay explosion chains

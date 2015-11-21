@@ -68,7 +68,7 @@ public class ArtilleryScript : NetworkBehaviour, IDamagable
         bulletBody.AddForce(bulletSpawn.forward * fireVelocity, ForceMode.Impulse);
     }
 
-    public void TakeDamage(int amount, DamageType damage, GameObject inflictor)
+    public void TakeDamage(DamageData damage)
     {
         RpcPunchVehicle();
     }

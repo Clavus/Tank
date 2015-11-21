@@ -7,6 +7,7 @@ public class PlayerTankControllerScript : BaseNetworkedPlayerControllerBehaviour
 {
 
     public float speed = 4;
+    public GameObject damageSound;
 
     private TankScript tank;
 
@@ -44,4 +45,25 @@ public class PlayerTankControllerScript : BaseNetworkedPlayerControllerBehaviour
         if (isLocalPlayer)
             tank.MoveBy(new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical")) * Time.deltaTime * speed, 4, 0.5f);
     }
+
+    #region SERVER
+
+    public override void TakeDamage(DamageData damage)
+    {
+        RpcTookDamage();
+    }
+
+    #endregion
+
+    #region CLIENT
+
+    [ClientRpc]
+    void RpcTookDamage()
+    {
+        if (damageSound != null)
+            ObjectPool.Get(damageSound).GetComponent<AudioSource>().Play();
+    }
+
+    #endregion
+
 }
