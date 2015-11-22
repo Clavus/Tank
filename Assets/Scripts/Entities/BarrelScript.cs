@@ -56,7 +56,7 @@ public class BarrelScript : NetworkBehaviour, IDamagable
 
         hasExploded = true; // avoid infinite loop with explosion triggers
 
-        Explosion.CreateSystem(transform.position, 1.5f, 50f, 1, 0.1f, gameObject).Trigger();
+        Explosion.CreateSystem(transform.position, 2f, 50f, 1, 0.2f, gameObject).Trigger();
         Effect.SpawnOnClient("BarrelExplosion", transform.position);
         Effect.ShakeCamera(0.3f, 0.5f);
         NetworkServer.Destroy(gameObject);

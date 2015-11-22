@@ -5,9 +5,8 @@ public class PlayRandomSoundScript : MonoBehaviour
 {
 
     public AudioSource[] sources;
-
-	// Use this for initialization
-	void Start ()
+    
+	void OnEnable()
 	{
 	    if (sources != null && sources.Length > 0)
 	    {
@@ -19,8 +18,4 @@ public class PlayRandomSoundScript : MonoBehaviour
         }
 	}
 	
-	// Update is called once per frame
-	void Update () {
-	
-	}
 }
