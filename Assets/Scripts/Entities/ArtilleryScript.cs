@@ -6,13 +6,22 @@ using System.Collections;
 public class ArtilleryScript : NetworkBehaviour, IDamagable
 {
 
-    public Transform bulletSpawn;
-    public Transform bulletPrefab;
-    public float fireVelocity = 10f;
+    [Header("Vehicle")]
     public Transform vehicleBody;
     public float turnRate = 90f;
+
+    [Header("Weapons")]
+    public Transform bulletSpawn;
+    public Transform bulletPrefab;
     public Transform recoilBarrel;
+    public float fireVelocity = 10f;
     public AudioSource fireAudio;
+
+    [Header("Damage effects")]
+    public BlinkColorScript damageBlink;
+    public float blinkPeriodOnHit = 1f;
+    public Vector3 scalePunch = new Vector3(0.5f, 0.75f, 0.5f);
+    public float scalePunchPeriod = 1f;
 
     private Rigidbody body;
     private Quaternion targetRotation;
@@ -70,7 +79,7 @@ public class ArtilleryScript : NetworkBehaviour, IDamagable
 
     public void TakeDamage(DamageData damage)
     {
-        RpcPunchVehicle();
+        RpcTookDamage();
     }
 
     #endregion
@@ -85,14 +94,17 @@ public class ArtilleryScript : NetworkBehaviour, IDamagable
     }
 
     [ClientRpc]
-    void RpcPunchVehicle()
+    void RpcTookDamage()
     {
+        if (damageBlink != null)
+            damageBlink.Blink(blinkPeriodOnHit);
+
         iTween.Stop(vehicleBody.gameObject);
         vehicleBody.localScale = Vector3.one;
 
         // delay by a frame, can't seem to trigger tweens right after stopping them.
         vp_Timer.In(0, delegate() { // todo: proper null check in case the vehicle is destroyed
-            iTween.PunchScale(vehicleBody.gameObject, new Vector3(0.1f, 0.2f, 0.1f), 0.8f);
+            iTween.PunchScale(vehicleBody.gameObject, scalePunch, scalePunchPeriod);
         });
         
     }

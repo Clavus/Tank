@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 // Taken and improved from: http://forum.unity3d.com/threads/simple-reusable-object-pool-help-limit-your-instantiations.76851/
@@ -47,9 +48,10 @@ public class ObjectPool : SingletonComponent<ObjectPool>
     // The faster lookup dictionary
     private Dictionary<string, ObjectPoolEntry> entries;
 
-    // Use this for initialization
-    private void Start()
+    private void Awake()
     {
+        base.Awake();
+
         // Loop through the object prefabs and make a new queue for each one.
         // Store everything in the entries dictionary for faster lookup.
         entries = new Dictionary<string, ObjectPoolEntry>();
@@ -75,8 +77,9 @@ public class ObjectPool : SingletonComponent<ObjectPool>
             // Fill the buffer
             for (int n = 0; n < pooledObj.StartBufferSize; n++)
             {
-                var newObj = Instantiate(pooledObj.Prefab);
+                GameObject newObj = Instantiate(pooledObj.Prefab);
                 newObj.name = pooledObj.Prefab.name;
+                newObj.BroadcastMessage("OnPoolStart", SendMessageOptions.DontRequireReceiver);
                 AddInternal(newObj);
             }
         }
@@ -175,6 +178,7 @@ public class ObjectPool : SingletonComponent<ObjectPool>
             GameObject newObj = (GameObject)Instantiate(prefab, position, rotation);
             newObj.name = prefab.name;
             newObj.transform.parent = transform;
+            newObj.BroadcastMessage("OnPoolStart", SendMessageOptions.DontRequireReceiver);
             return newObj;
         }
 
@@ -204,6 +208,7 @@ public class ObjectPool : SingletonComponent<ObjectPool>
 
         if (!entries.TryGetValue(obj.name, out pooledObj))
         {
+            Debug.LogWarning("Trying to add non-pooled object '" + obj.name + "' to pool, destroying instead...");
             Destroy(obj);
             return;
         }
@@ -214,6 +219,11 @@ public class ObjectPool : SingletonComponent<ObjectPool>
         pool.Enqueue(obj);
     }
 
+    /// <summary>
+    ///     Checks if object pool has this specific object pooled.
+    /// </summary>
+    /// <param name="obj"></param>
+    /// <returns></returns>
     public static bool Contains(GameObject obj)
     {
         return instance.ContainsInternal(obj);

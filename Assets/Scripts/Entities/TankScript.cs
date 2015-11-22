@@ -17,9 +17,11 @@ public class TankScript : NetworkBehaviour, IDamagable
     public float fireVelocity = 20f;
     public AudioSource fireAudio;
 
-    [Header("Damage handling")]
+    [Header("Damage effects")]
     public BlinkColorScript damageBlink;
-    public float invulnerabilityTimeAfterHit = 1f;
+    public float blinkPeriodOnHit = 1f;
+    public Vector3 scalePunch = new Vector3(0.5f, 0.75f, 0.5f);
+    public float scalePunchPeriod = 1f;
 
     [SyncVar]
     private Quaternion turretTargetRot = Quaternion.identity;
@@ -206,7 +208,7 @@ public class TankScript : NetworkBehaviour, IDamagable
     void RpcTookDamage()
     {
         if (damageBlink != null)
-            damageBlink.Blink(invulnerabilityTimeAfterHit);
+            damageBlink.Blink(blinkPeriodOnHit);
 
         // Punch vehicle scale
         iTween.Stop(vehicleBody.gameObject);
@@ -215,7 +217,7 @@ public class TankScript : NetworkBehaviour, IDamagable
         // delay by a frame, can't seem to trigger tweens right after stopping them.
         // todo: proper null check in case the vehicle is destroyed
         vp_Timer.In(0, delegate () {
-            iTween.PunchScale(vehicleBody.gameObject, new Vector3(0.4f, 0.7f, 0.4f), invulnerabilityTimeAfterHit);
+            iTween.PunchScale(vehicleBody.gameObject, scalePunch, scalePunchPeriod);
         });
 
     }

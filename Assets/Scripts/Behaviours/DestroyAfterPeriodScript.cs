@@ -5,31 +5,33 @@ public class DestroyAfterPeriodScript : MonoBehaviour
 {
 
     public float period = 1f;
-    public bool isPooled = false;
+    [Tooltip("If checked and this game object is registered as a pooled object, the object will not be put back in the pool but instead destroyed properly")]
+    public bool dontPool = false;
 
+    private bool isPooled = false;
     private float killTime;
-
-	// Use this for initialization
-	void Start ()
-	{
-	    
-	}
 
     void OnEnable()
     {
         killTime = Time.time + period;
     }
 	
-	// Update is called once per frame
 	void Update () {
 
-	    if (killTime < Time.time)
+	    if (killTime <= Time.time)
 	    {
-	        if (isPooled)
-                ObjectPool.Add(gameObject);
-            else
+            if (isPooled)
+	            ObjectPool.Add(gameObject);
+	        else
                 Destroy(gameObject);
 	    }
 
 	}
+
+    // Called when spawned for first time in object pool
+    void OnPoolStart()
+    {
+        if (!dontPool)
+            isPooled = true;
+    }
 }

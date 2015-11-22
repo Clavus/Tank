@@ -16,6 +16,9 @@ public class EffectManagerScript : NetworkBehaviour
     {
         public string name;
         public GameObject effect;
+
+        [HideInInspector]
+        public bool isPooled;
     }
 
     void Awake()
@@ -26,26 +29,29 @@ public class EffectManagerScript : NetworkBehaviour
 
 	void Start ()
 	{
-
+        // Check which effects are pooled, so we can spawn them more efficiently
+        for (int i = 0; i < registeredEffects.Length; i++)
+            if (ObjectPool.Contains(registeredEffects[i].effect))
+                registeredEffects[i].isPooled = true;
     }
 	
 	void Update () {
 	
 	}
 
-    GameObject GetEffectByName(string name)
+    SpawnableEffect GetEffectByName(string name)
     {
         foreach (SpawnableEffect e in registeredEffects)
         {
             if (e.name == name)
-                return e.effect;
+                return e;
         }
-        return null;
+        return new SpawnableEffect();
     }
 
     public static bool EffectExists(string name)
     {
-        return instance.GetEffectByName(name) != null;
+        return instance.GetEffectByName(name).effect != null;
     }
 
     public static void SpawnOnClient(string effect, Vector3 position, Quaternion rotation, Vector3 scale)
@@ -56,14 +62,19 @@ public class EffectManagerScript : NetworkBehaviour
     [ClientRpc]
     void RpcSpawnOnClient(string effect, Vector3 position, Quaternion rotation, Vector3 scale)
     {
-        GameObject effectObj = GetEffectByName(effect);
-        if (effectObj == null)
+        SpawnableEffect sEffect = GetEffectByName(effect);
+        if (sEffect.effect == null)
         {
             Debug.LogError("Effect '" + effect + "' is not registered and cannot be spawned!");
             return;
         }
 
-        GameObject spawned = (GameObject)Instantiate(effectObj, position, rotation);
+        GameObject spawned;
+        if (sEffect.isPooled)
+            spawned = ObjectPool.Get(sEffect.effect.name, position, rotation);
+        else
+            spawned = (GameObject)Instantiate(sEffect.effect, position, rotation);
+        
         spawned.transform.localScale = scale;
     }
 

@@ -69,6 +69,9 @@ public class BarrelScript : NetworkBehaviour, IDamagable
     [ClientRpc]
     void RpcPrimeForExplosion(float delay)
     {
+        if (meshObject == null)
+            return;
+
         iTween.PunchScale(meshObject, new Vector3(0.8f, 1.2f, 0.8f), delay);
         iTween.ColorTo(meshObject, Color.red, delay);
     }
