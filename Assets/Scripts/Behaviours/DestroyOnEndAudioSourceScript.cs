@@ -2,7 +2,7 @@
 using System.Collections;
 
 [RequireComponent(typeof(AudioSource))]
-public class DestroyOnEndAudioSourceScript : MonoBehaviour
+public class DestroyOnEndAudioSourceScript : MonoBehaviour, IPooledObject
 {
 
     [Tooltip("If checked and this game object is registered as a pooled object, the object will not be put back in the pool but instead destroyed properly")]
@@ -38,11 +38,14 @@ public class DestroyOnEndAudioSourceScript : MonoBehaviour
         }
     }
 
-    // Called when spawned for first time in object pool
-    void OnPoolStart()
+    public void OnPoolInitialize()
     {
         if (!dontPool)
             isPooled = true;
     }
 
+    public void OnPoolSpawn()
+    {
+
+    }
 }

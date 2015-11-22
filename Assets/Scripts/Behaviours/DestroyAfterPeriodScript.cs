@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class DestroyAfterPeriodScript : MonoBehaviour
+public class DestroyAfterPeriodScript : MonoBehaviour, IPooledObject
 {
 
     public float period = 1f;
@@ -28,10 +28,14 @@ public class DestroyAfterPeriodScript : MonoBehaviour
 
 	}
 
-    // Called when spawned for first time in object pool
-    void OnPoolStart()
+    public void OnPoolInitialize()
     {
         if (!dontPool)
             isPooled = true;
+    }
+
+    public void OnPoolSpawn()
+    {
+        
     }
 }

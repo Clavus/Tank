@@ -2,7 +2,7 @@
 using System.Collections;
 
 [RequireComponent(typeof(ParticleSystem))]
-public class DestroyOnEndParticleSystemScript : MonoBehaviour
+public class DestroyOnEndParticleSystemScript : MonoBehaviour, IPooledObject
 {
 
     [Tooltip("If checked and this game object is registered as a pooled object, the object will not be put back in the pool but instead destroyed properly")]
@@ -38,11 +38,14 @@ public class DestroyOnEndParticleSystemScript : MonoBehaviour
         }
     }
 
-    // Called when spawned for first time in object pool
-    void OnPoolStart()
+    public void OnPoolInitialize()
     {
         if (!dontPool)
             isPooled = true;
     }
 
+    public void OnPoolSpawn()
+    {
+        
+    }
 }

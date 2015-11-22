@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using UnityEngine;
+using UnityEngine.Networking;
 
 // Taken and improved from: http://forum.unity3d.com/threads/simple-reusable-object-pool-help-limit-your-instantiations.76851/
 
@@ -48,10 +50,8 @@ public class ObjectPool : SingletonComponent<ObjectPool>
     // The faster lookup dictionary
     private Dictionary<string, ObjectPoolEntry> entries;
 
-    private void Awake()
+    void Start()
     {
-        base.Awake();
-
         // Loop through the object prefabs and make a new queue for each one.
         // Store everything in the entries dictionary for faster lookup.
         entries = new Dictionary<string, ObjectPoolEntry>();
@@ -77,9 +77,13 @@ public class ObjectPool : SingletonComponent<ObjectPool>
             // Fill the buffer
             for (int n = 0; n < pooledObj.StartBufferSize; n++)
             {
+                pooledObj.Prefab.SetActive(false); // deactivate before spawn
                 GameObject newObj = Instantiate(pooledObj.Prefab);
                 newObj.name = pooledObj.Prefab.name;
-                newObj.BroadcastMessage("OnPoolStart", SendMessageOptions.DontRequireReceiver);
+
+                IPooledObject[] poolScripts = newObj.GetComponentsInChildren(typeof(IPooledObject), true).Cast<IPooledObject>().ToArray();
+                Array.ForEach(poolScripts, o => o.OnPoolInitialize());
+
                 AddInternal(newObj);
             }
         }
@@ -171,6 +175,8 @@ public class ObjectPool : SingletonComponent<ObjectPool>
             pooledObject.transform.rotation = rotation;
             pooledObject.SetActive(true);
 
+            IPooledObject[] poolScripts = pooledObject.GetComponentsInChildren(typeof(IPooledObject), true).Cast<IPooledObject>().ToArray();
+            Array.ForEach(poolScripts, o => o.OnPoolSpawn());
             return pooledObject;
         }
         if (!onlyPooled)
@@ -178,7 +184,12 @@ public class ObjectPool : SingletonComponent<ObjectPool>
             GameObject newObj = (GameObject)Instantiate(prefab, position, rotation);
             newObj.name = prefab.name;
             newObj.transform.parent = transform;
-            newObj.BroadcastMessage("OnPoolStart", SendMessageOptions.DontRequireReceiver);
+
+            IPooledObject[] poolScripts = newObj.GetComponentsInChildren(typeof(IPooledObject), true).Cast<IPooledObject>().ToArray();
+            Array.ForEach(poolScripts, o => o.OnPoolInitialize());
+            newObj.SetActive(true);
+            Array.ForEach(poolScripts, o => o.OnPoolSpawn());
+
             return newObj;
         }
 
