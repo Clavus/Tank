@@ -36,6 +36,8 @@ public class PlayerTankControllerScript : BaseNetworkedPlayerControllerBehaviour
             if (Input.GetButtonDown("Fire1"))
                 tank.CmdFireBullet();
 
+            if (Input.GetButtonDown("Fire2"))
+                tank.CmdFireFlare();
         }
 
     }

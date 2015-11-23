@@ -8,4 +8,9 @@ public class EventTrigger : MonoBehaviour {
         
     }
 
+    public virtual void ResetTrigger()
+    {
+        
+    }
+
 }

@@ -16,6 +16,7 @@ public class TankScript : NetworkBehaviour, IDamagable
     public Transform bulletPrefab;
     public float fireVelocity = 20f;
     public AudioSource fireAudio;
+    public GameObject flarePrefab;
 
     [Header("Damage effects")]
     public BlinkColorScript damageBlink;
@@ -186,6 +187,16 @@ public class TankScript : NetworkBehaviour, IDamagable
 
         RpcFireEffects();
         //bulletBody.velocity = bulletSpawn.forward * fireVelocity; 
+    }
+
+    [Command]
+    public void CmdFireFlare()
+    {
+        GameObject flare = (GameObject)Instantiate(flarePrefab, transform.position, Quaternion.identity);
+        NetworkServer.Spawn(flare);
+
+        Rigidbody flareBody = flare.GetComponent<Rigidbody>();
+        flareBody.AddForce(Util.GetPointOnUnitSphereCap(Quaternion.LookRotation(Vector3.up, Vector3.up), 30f) * 20f, ForceMode.Impulse);
     }
 
     public void TakeDamage(DamageData damage)
