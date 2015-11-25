@@ -60,4 +60,11 @@ public class ChangeMaterialSettingsScript : MonoBehaviour
         renderer.material = mat;
     }
 
+    [ContextMenu("Apply material settings")]
+    private void ApplyCurrentMaterial()
+    {
+        OverrideMaterial(CopyMaterial());
+        UpdateMaterial();
+    }
+
 }
