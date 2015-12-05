@@ -67,7 +67,7 @@ public class ArtilleryScript : NetworkBehaviour, IDamagable
     [Command]
     public void CmdFireBullet()
     {
-        GameObject bullet = (GameObject)Instantiate(bulletPrefab.gameObject, bulletSpawn.position, bulletSpawn.rotation);
+        GameObject bullet = Game.Create(bulletPrefab.gameObject, bulletSpawn.position, bulletSpawn.rotation);
         bullet.GetComponent<BulletScript>().SetOwner(gameObject);
         NetworkServer.Spawn(bullet);
 

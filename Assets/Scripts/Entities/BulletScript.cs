@@ -18,13 +18,17 @@ public class BulletScript : NetworkBehaviour
     private void Awake()
     {
         body = GetComponent<Rigidbody>();
+        body.useGravity = false;
     }
 
-    private void Start()
+    private void OnEnable()
     {
-        body.useGravity = false;
-
         dieTime = Time.time + lifeTime;
+    }
+
+    private void OnDisable()
+    {
+        body.velocity = Vector3.zero;
     }
 
     private void Update()
@@ -69,7 +73,7 @@ public class BulletScript : NetworkBehaviour
         if (Effect.Exists(effectOnImpact))
             Effect.SpawnOnClient(effectOnImpact, transform.position);
 
-        NetworkServer.Destroy(gameObject);
+        Game.Destroy(gameObject);
     }
 
     public void SetOwner(GameObject owner)

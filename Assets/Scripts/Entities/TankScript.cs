@@ -178,7 +178,7 @@ public class TankScript : NetworkBehaviour, IDamagable
     [Command]
     public void CmdFireBullet()
     {
-        GameObject bullet = (GameObject) Instantiate(bulletPrefab.gameObject, bulletSpawn.position, bulletSpawn.rotation);
+        GameObject bullet = Game.Create(bulletPrefab.gameObject, bulletSpawn.position, bulletSpawn.rotation);
         bullet.GetComponent<BulletScript>().SetOwner(gameObject);
         NetworkServer.Spawn(bullet);
 
@@ -192,7 +192,7 @@ public class TankScript : NetworkBehaviour, IDamagable
     [Command]
     public void CmdFireFlare()
     {
-        GameObject flare = (GameObject)Instantiate(flarePrefab, transform.position, Quaternion.identity);
+        GameObject flare = Game.Create(flarePrefab, transform.position, Quaternion.identity);
         NetworkServer.Spawn(flare);
 
         Rigidbody flareBody = flare.GetComponent<Rigidbody>();

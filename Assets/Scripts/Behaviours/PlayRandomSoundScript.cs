@@ -11,10 +11,7 @@ public class PlayRandomSoundScript : MonoBehaviour
 	    if (sources != null && sources.Length > 0)
 	    {
             AudioSource pick = sources[Random.Range(0, sources.Length)];
-            if (ObjectPool.Contains(pick))
-                ObjectPool.Get(pick, transform.position, Quaternion.identity).GetComponent<AudioSource>().Play();
-            else
-                ((AudioSource) Instantiate(pick)).Play();
+            Game.Create(pick.gameObject, transform.position, Quaternion.identity).GetComponent<AudioSource>().Play();
         }
 	}
 	

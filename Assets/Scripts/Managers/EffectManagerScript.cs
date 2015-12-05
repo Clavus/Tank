@@ -69,12 +69,7 @@ public class EffectManagerScript : NetworkBehaviour
             return;
         }
 
-        GameObject spawned;
-        if (sEffect.isPooled)
-            spawned = ObjectPool.Get(sEffect.effect.name, position, rotation);
-        else
-            spawned = (GameObject)Instantiate(sEffect.effect, position, rotation);
-        
+        GameObject spawned = Game.Create(sEffect.effect, position, rotation);
         spawned.transform.localScale = scale;
     }
 

@@ -38,6 +38,12 @@ public class ObjectPool : SingletonComponent<ObjectPool>
         /// </summary>
         [HideInInspector]
         public Queue<GameObject> Pool;
+
+        /// <summary>
+        ///     If the object is a networked object
+        /// </summary>
+        [HideInInspector]
+        public bool IsNetworked;
     }
 
     #endregion
@@ -58,11 +64,11 @@ public class ObjectPool : SingletonComponent<ObjectPool>
 
         for (int i = 0; i < pooledObjects.Length; i++)
         {
-            ObjectPoolEntry pooledObj = pooledObjects[i];
-            if (pooledObj.Prefab == null)
+            ObjectPoolEntry pooled = pooledObjects[i];
+            if (pooled.Prefab == null)
                 continue;
 
-            string pname = pooledObj.Prefab.name;
+            string pname = pooled.Prefab.name;
             if (entries.ContainsKey(pname))
             {
                 Debug.LogError("Object pool contains multiple entries for name '" + pname + "'");
@@ -70,21 +76,25 @@ public class ObjectPool : SingletonComponent<ObjectPool>
             }
 
             // Create the repository
-            pooledObj.Pool = new Queue<GameObject>();
+            pooled.Pool = new Queue<GameObject>();
 
-            entries.Add(pname, pooledObj);
+            pooled.IsNetworked = pooled.Prefab.HasComponent<NetworkIdentity>();
+            if (pooled.IsNetworked)
+                Debug.Log("Prefab: " + pooled.Prefab.name + ", assetId: " + pooled.Prefab.GetComponent<NetworkIdentity>().assetId.ToString());
+
+            entries.Add(pname, pooled);
 
             // Fill the buffer
-            for (int n = 0; n < pooledObj.StartBufferSize; n++)
+            for (int n = 0; n < pooled.StartBufferSize; n++)
             {
-                pooledObj.Prefab.SetActive(false); // deactivate before spawn
-                GameObject newObj = Instantiate(pooledObj.Prefab);
-                newObj.name = pooledObj.Prefab.name;
+                pooled.Prefab.SetActive(false); // deactivate before spawn
+                GameObject newObj = (GameObject)Instantiate(pooled.Prefab, Vector3.zero, Quaternion.identity);
+                newObj.name = pooled.Prefab.name;
+                
+                newObj.transform.parent = transform;
+                newObj.SetActive(false);
 
-                IPooledObject[] poolScripts = newObj.GetComponentsInChildren(typeof(IPooledObject), true).Cast<IPooledObject>().ToArray();
-                Array.ForEach(poolScripts, o => o.OnPoolInitialize());
-
-                AddInternal(newObj);
+                pooled.Pool.Enqueue(newObj);
             }
         }
     }
@@ -154,42 +164,37 @@ public class ObjectPool : SingletonComponent<ObjectPool>
         return instance.GetInternal(obj.name, false, Vector3.zero, Quaternion.identity);
     }
 
-    private GameObject GetInternal(string objectType, bool onlyPooled, Vector3 position, Quaternion rotation)
+    private GameObject GetInternal(string objName, bool onlyPooled, Vector3 position, Quaternion rotation)
     {
-        ObjectPoolEntry pooledObj;
+        ObjectPoolEntry pooled;
 
-        if (!entries.TryGetValue(objectType, out pooledObj))
+        if (!entries.TryGetValue(objName, out pooled))
         {
-            Debug.LogError("'" + objectType + "' is not a pooled object!");
+            Debug.LogError("'" + objName + "' is not a pooled object!");
             return null;
         }
 
-        GameObject prefab = pooledObj.Prefab;
-        Queue<GameObject> pool = pooledObj.Pool;
+        GameObject prefab = pooled.Prefab;
+        Queue<GameObject> pool = pooled.Pool;
 
         if (pool.Count > 0)
         {
-            GameObject pooledObject = pool.Dequeue();
+            GameObject pooledObj = pool.Dequeue();
             //pooledObject.transform.parent = null;
-            pooledObject.transform.position = position;
-            pooledObject.transform.rotation = rotation;
-            pooledObject.SetActive(true);
-
-            IPooledObject[] poolScripts = pooledObject.GetComponentsInChildren(typeof(IPooledObject), true).Cast<IPooledObject>().ToArray();
-            Array.ForEach(poolScripts, o => o.OnPoolSpawn());
-            return pooledObject;
+            pooledObj.transform.position = position;
+            pooledObj.transform.rotation = rotation;
+            pooledObj.SetActive(true);
+            
+            return pooledObj;
         }
+
         if (!onlyPooled)
         {
             GameObject newObj = (GameObject)Instantiate(prefab, position, rotation);
             newObj.name = prefab.name;
             newObj.transform.parent = transform;
-
-            IPooledObject[] poolScripts = newObj.GetComponentsInChildren(typeof(IPooledObject), true).Cast<IPooledObject>().ToArray();
-            Array.ForEach(poolScripts, o => o.OnPoolInitialize());
             newObj.SetActive(true);
-            Array.ForEach(poolScripts, o => o.OnPoolSpawn());
-
+            
             return newObj;
         }
 
@@ -215,18 +220,21 @@ public class ObjectPool : SingletonComponent<ObjectPool>
 
     private void AddInternal(GameObject obj)
     {
-        ObjectPoolEntry pooledObj;
+        ObjectPoolEntry pooled;
 
-        if (!entries.TryGetValue(obj.name, out pooledObj))
+        if (!entries.TryGetValue(obj.name, out pooled))
         {
-            Debug.LogWarning("Trying to add non-pooled object '" + obj.name + "' to pool, destroying instead...");
-            Destroy(obj);
+            Debug.LogError("Trying to add non-pooled object '" + obj.name + "' to pool");
             return;
         }
 
-        Queue<GameObject> pool = pooledObj.Pool;
+        if (pooled.IsNetworked)
+            NetworkServer.UnSpawn(obj);
+
         obj.SetActive(false);
         obj.transform.parent = transform;
+
+        Queue<GameObject> pool = pooled.Pool;
         pool.Enqueue(obj);
     }
 

@@ -64,7 +64,7 @@ public class AttackChopperScript : NetworkBehaviour, IDamagable
     [Command]
     public void CmdDropBomb()
     {
-        GameObject bullet = (GameObject)Instantiate(bombPrefab.gameObject, bombSpawn.position, bombSpawn.rotation);
+        GameObject bullet = Game.Create(bombPrefab.gameObject, bombSpawn.position, bombSpawn.rotation);
         bullet.GetComponent<BulletScript>().SetOwner(gameObject);
         NetworkServer.Spawn(bullet);
     }
